@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Анализ отзыва — ReviewAnalyzer{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h4 class="card-title mb-3">Анализ тональности отзыва</h4>
+                <form method="post" action="{{ url_for('main.analyze') }}">
+                    {{ form.csrf_token }}
+                    <div class="mb-3">
+                        {{ form.text.label(class="form-label") }}
+                        {{ form.text(class="form-control", rows="4",
+                            placeholder="Введите текст отзыва...") }}
+                    </div>
+                    {{ form.submit(class="btn btn-primary") }}
+                </form>
+            </div>
+        </div>
+
+        {% if result %}
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Результат</h5>
+                <p class="text-muted mb-2">«{{ analyzed_text }}»</p>
+                {% set badge = {'positive': 'success', 'negative': 'danger',
+                    'neutral': 'secondary'} %}
+                <p>
+                    Тональность:
+                    <span class="badge bg-{{ badge.get(result.label, 'secondary') }}">
+                        {{ result.label }}
+                    </span>
+                </p>
+                <p>Уверенность: <strong>{{ '%.1f' % (result.confidence * 100) }}%</strong></p>
+                <div class="mt-3">
+                    {% for cls, p in result.probabilities.items() %}
+                    <div class="mb-1">
+                        <small>{{ cls }} — {{ '%.1f' % (p * 100) }}%</small>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-{{ badge.get(cls, 'secondary') }}"
+                                 style="width: {{ p * 100 }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

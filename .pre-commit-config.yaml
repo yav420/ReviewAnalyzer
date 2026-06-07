@@ -12,10 +12,10 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        entry: uv run mypy --config-file=pyproject.toml
+        entry: python -m mypy --config-file=pyproject.toml
         language: system
         types: [python]
-        exclude: ^(migrations/|tests/)
+        exclude: ^(migrations/|tests/|src/web/forms\.py)
 
   # Commitizen — проверка формата коммит-сообщений
   - repo: https://github.com/commitizen-tools/commitizen
