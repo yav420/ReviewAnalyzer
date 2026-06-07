@@ -1,0 +1,24 @@
+# Dockerfile для ML API (FastAPI)
+FROM python:3.11-slim
+
+# Устанавливаем uv (быстрый менеджер пакетов)
+COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /uvx /bin/
+
+WORKDIR /app
+
+# Сначала только файлы зависимостей — для кэширования слоёв
+COPY pyproject.toml uv.lock ./
+
+# Устанавливаем зависимости (без dev-группы) в системное окружение
+RUN uv sync --frozen --no-dev --no-install-project
+
+# Копируем исходный код и обученную модель
+COPY src ./src
+COPY ml ./ml
+
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/app/.venv/bin:$PATH"
+
+EXPOSE 8000
+
+CMD ["uvicorn", "src.ml_api.main:app", "--host", "0.0.0.0", "--port", "8000"]

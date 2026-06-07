@@ -1,0 +1,26 @@
+# Dockerfile для веб-приложения (Flask)
+FROM python:3.11-slim
+
+# Устанавливаем uv
+COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /uvx /bin/
+
+WORKDIR /app
+
+# Файлы зависимостей — для кэширования слоёв
+COPY pyproject.toml uv.lock ./
+
+# Зависимости без dev-группы
+RUN uv sync --frozen --no-dev --no-install-project
+
+# Исходный код, миграции и конфиг Alembic
+COPY src ./src
+COPY migrations ./migrations
+COPY alembic.ini ./
+
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/app/.venv/bin:$PATH"
+
+EXPOSE 5000
+
+# Применяем миграции, затем запускаем gunicorn
+CMD ["sh", "-c", "alembic upgrade head && gunicorn -w 2 -b 0.0.0.0:5000 'src.web.app:app'"]
